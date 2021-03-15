@@ -58,7 +58,9 @@ sqlite> EXPLAIN QUERY PLAN SELECT count(*) FROM big_cards;
 Record output below:
 
 ```
-
+QUERY PLAN
+`--SCAN TABLE big_cards
+Run Time: real 0.001 user 0.000000 sys 0.000000
 ```
 
 #### Using Indexes to improve performance
@@ -74,7 +76,12 @@ You suspect an index will help, but before you make any changes you want to get 
 Record output below:
 
 ```
+`select card_id, name from big_cards where race = 'TOTEM';`: 
+Run Time: real 3.582 user 0.593750 sys 1.703125
 
+QUERY PLAN
+`--SCAN TABLE big_cards
+Run Time: real 0.003 user 0.000000 sys 0.000000
 ```
 
 You suspect that an index on the race column will help. Let's create it.
@@ -86,7 +93,10 @@ You suspect that an index on the race column will help. Let's create it.
 Record output below:
 
 ```
-
+Run Time: real 3.315 user 1.671875 sys 1.500000
+QUERY PLAN
+`--SEARCH TABLE big_cards USING INDEX IDX1_big_cards (race=?)
+Run Time: real 0.003 user 0.000000 sys 0.000000
 ```
 
 Would it be possible to satisfy the query with an index only and further speed up the query?
@@ -98,6 +108,12 @@ Would it be possible to satisfy the query with an index only and further speed u
 Record output below:
 
 ```
+Run Time: real 6.268 user 3.609375 sys 2.328125
+
+
+QUERY PLAN
+`--SEARCH TABLE big_cards USING COVERING INDEX IDX2_big_cards (race=?)
+Run Time: real 0.002 user 0.000000 sys 0.000000
 
 ```
 
@@ -110,7 +126,10 @@ If you issue command `VACUUM big_cards;` and re-analyze you will likely see an e
 Record output below:
 
 ```
-
+ real 22.399 user 3.203125 sys 15.390625
+ QUERY PLAN
+`--SEARCH TABLE big_cards USING COVERING INDEX IDX2_big_cards (race=?)
+Run Time: real 0.001 user 0.000000 sys 0.000000
 ```
 
 #### The performance cost of Indexes 
@@ -126,7 +145,9 @@ Note the Execution time.
 Record output below:
 
 ```
-
+QUERY PLAN
+`--SCAN TABLE big_cards
+Run Time: real 0.001 user 0.000000 sys 0.000000
 ```
 
 
@@ -141,13 +162,15 @@ Now let's drop the indexes and try again:
 Record output below:
 
 ```
-
+QUERY PLAN
+`--SCAN TABLE big_cards
+Run Time: real 0.002 user 0.000000 sys 0.000000
 ```
 
 Does the update took less time without the indexes? 
 Your answer:
 ```
-
+No
 ```
 
 Describe your findings of this Lab 5 from the recorded outputs, is everything working fine? or is anything not working? etc. Please indicate your SQLite version:
