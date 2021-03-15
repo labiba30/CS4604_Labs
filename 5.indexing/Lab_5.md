@@ -61,6 +61,12 @@ Record output below:
 QUERY PLAN
 `--SCAN TABLE big_cards
 Run Time: real 0.001 user 0.000000 sys 0.000000
+
+
+sqlite> EXPLAIN QUERY PLAN SELECT count(*) FROM big_cards;
+QUERY PLAN
+`--SCAN TABLE big_cards
+Run Time: real 0.002 user 0.000000 sys 0.000000
 ```
 
 #### Using Indexes to improve performance
@@ -83,6 +89,12 @@ Query: EXPLAIN QUERY PLAN SELECT card_id, name FROM big_cards WHERE race = 'TOTE
 QUERY PLAN
 `--SCAN TABLE big_cards
 Run Time: real 0.003 user 0.000000 sys 0.000000
+
+
+sqlite> EXPLAIN QUERY PLAN SELECT card_id, name FROM big_cards WHERE race = 'TOTEM';
+QUERY PLAN
+`--SCAN TABLE big_cards
+Run Time: real 0.002 user 0.000000 sys 0.000000
 ```
 
 You suspect that an index on the race column will help. Let's create it.
@@ -101,6 +113,14 @@ Query: EXPLAIN QUERY PLAN SELECT card_id, name FROM big_cards WHERE race = 'TOTE
 QUERY PLAN
 `--SEARCH TABLE big_cards USING INDEX IDX1_big_cards (race=?)
 Run Time: real 0.003 user 0.000000 sys 0.000000
+
+
+sqlite> CREATE INDEX IDX1_big_cards ON big_cards(race);
+Run Time: real 3.342 user 1.906250 sys 1.343750
+sqlite> EXPLAIN QUERY PLAN SELECT card_id, name FROM big_cards WHERE race = 'TOTEM';
+QUERY PLAN
+`--SEARCH TABLE big_cards USING INDEX IDX1_big_cards (race=?)
+Run Time: real 0.002 user 0.000000 sys 0.000000
 ```
 
 Would it be possible to satisfy the query with an index only and further speed up the query?
@@ -120,6 +140,13 @@ QUERY PLAN
 `--SEARCH TABLE big_cards USING COVERING INDEX IDX2_big_cards (race=?)
 Run Time: real 0.002 user 0.000000 sys 0.000000
 
+
+sqlite> CREATE INDEX IDX2_big_cards ON big_cards(race, card_id, name);
+Run Time: real 6.389 user 3.953125 sys 2.203125
+sqlite> EXPLAIN QUERY PLAN SELECT card_id, name FROM big_cards WHERE race = 'TOTEM';
+QUERY PLAN
+`--SEARCH TABLE big_cards USING COVERING INDEX IDX2_big_cards (race=?)
+Run Time: real 0.002 user 0.000000 sys 0.000000
 ```
 
 If you issue command `VACUUM big_cards;` and re-analyze you will likely see an explain plan that *is* satisfied by the index (and consequently much faster). However, subsequent updates to the table would cause this query to go back to the table to check the visibility map.
@@ -138,6 +165,14 @@ Query: VACUUM;
  QUERY PLAN
 `--SEARCH TABLE big_cards USING COVERING INDEX IDX2_big_cards (race=?)
 Run Time: real 0.001 user 0.000000 sys 0.000000
+
+
+sqlite> VACUUM;
+Run Time: real 22.646 user 3.062500 sys 16.187500
+sqlite> EXPLAIN QUERY PLAN SELECT card_id, name FROM big_cards WHERE race = 'TOTEM';
+QUERY PLAN
+`--SEARCH TABLE big_cards USING COVERING INDEX IDX2_big_cards (race=?)
+Run Time: real 0.002 user 0.000000 sys 0.000000
 ```
 
 #### The performance cost of Indexes 
@@ -156,6 +191,11 @@ Record output below:
 QUERY PLAN
 `--SCAN TABLE big_cards
 Run Time: real 0.001 user 0.000000 sys 0.000000
+
+sqlite> EXPLAIN QUERY PLAN update big_cards set race = 'FOO';
+QUERY PLAN
+`--SCAN TABLE big_cards
+Run Time: real 0.002 user 0.000000 sys 0.000000
 ```
 
 
@@ -178,6 +218,16 @@ Query: drop index idx2_big_cards;
 Run Time: real 0.321 user 0.093750 sys 0.171875
 
 Query: EXPLAIN QUERY PLAN update big_cards set race = 'BAR';
+QUERY PLAN
+`--SCAN TABLE big_cards
+Run Time: real 0.002 user 0.000000 sys 0.000000
+
+
+sqlite> drop index idx1_big_cards;
+Run Time: real 0.128 user 0.046875 sys 0.046875
+sqlite> drop index idx2_big_cards;
+Run Time: real 0.330 user 0.046875 sys 0.234375
+sqlite> EXPLAIN QUERY PLAN update big_cards set race = 'BAR';
 QUERY PLAN
 `--SCAN TABLE big_cards
 Run Time: real 0.002 user 0.000000 sys 0.000000
