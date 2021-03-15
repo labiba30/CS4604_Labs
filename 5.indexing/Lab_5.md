@@ -76,10 +76,10 @@ You suspect an index will help, but before you make any changes you want to get 
 Record output below:
 
 ```
-**Query**:`select card_id, name from big_cards where race = 'TOTEM';`
+Query: select card_id, name from big_cards where race = 'TOTEM';
 Run Time: real 3.582 user 0.593750 sys 1.703125
 
-**Execute**: `EXPLAIN QUERY PLAN SELECT card_id, name FROM big_cards WHERE race = 'TOTEM';`
+Query: EXPLAIN QUERY PLAN SELECT card_id, name FROM big_cards WHERE race = 'TOTEM';
 QUERY PLAN
 `--SCAN TABLE big_cards
 Run Time: real 0.003 user 0.000000 sys 0.000000
@@ -94,10 +94,10 @@ You suspect that an index on the race column will help. Let's create it.
 Record output below:
 
 ```
-**Execute**: `CREATE INDEX IDX1_big_cards ON big_cards(race);`
+Query: CREATE INDEX IDX1_big_cards ON big_cards(race);
 Run Time: real 3.315 user 1.671875 sys 1.500000
 
-**Execute**: `EXPLAIN QUERY PLAN SELECT card_id, name FROM big_cards WHERE race = 'TOTEM';`
+Query: EXPLAIN QUERY PLAN SELECT card_id, name FROM big_cards WHERE race = 'TOTEM';
 QUERY PLAN
 `--SEARCH TABLE big_cards USING INDEX IDX1_big_cards (race=?)
 Run Time: real 0.003 user 0.000000 sys 0.000000
@@ -112,10 +112,10 @@ Would it be possible to satisfy the query with an index only and further speed u
 Record output below:
 
 ```
-**Execute**: `CREATE INDEX IDX2_big_cards ON big_cards(race, card_id, name);`
+Query: CREATE INDEX IDX2_big_cards ON big_cards(race, card_id, name);
 Run Time: real 6.268 user 3.609375 sys 2.328125
 
-**Execute**: `EXPLAIN QUERY PLAN SELECT card_id, name FROM big_cards WHERE race = 'TOTEM';`
+Query: EXPLAIN QUERY PLAN SELECT card_id, name FROM big_cards WHERE race = 'TOTEM';
 QUERY PLAN
 `--SEARCH TABLE big_cards USING COVERING INDEX IDX2_big_cards (race=?)
 Run Time: real 0.002 user 0.000000 sys 0.000000
@@ -131,10 +131,10 @@ If you issue command `VACUUM big_cards;` and re-analyze you will likely see an e
 Record output below:
 
 ```
-**Execute**: `VACUUM;`
+Query: VACUUM;
  real 22.399 user 3.203125 sys 15.390625
  
- **Execute**: `EXPLAIN QUERY PLAN SELECT card_id, name FROM big_cards WHERE race = 'TOTEM';`
+ Query: EXPLAIN QUERY PLAN SELECT card_id, name FROM big_cards WHERE race = 'TOTEM';
  QUERY PLAN
 `--SEARCH TABLE big_cards USING COVERING INDEX IDX2_big_cards (race=?)
 Run Time: real 0.001 user 0.000000 sys 0.000000
@@ -171,13 +171,13 @@ Record output below:
 
 ```
 
-**Execute**: `drop index idx1_big_cards;`
+Query: drop index idx1_big_cards;
 Run Time: real 0.126 user 0.031250 sys 0.062500
 
-**Execute**: `drop index idx2_big_cards;`
+Query: drop index idx2_big_cards;
 Run Time: real 0.321 user 0.093750 sys 0.171875
 
-**Execute**: `EXPLAIN QUERY PLAN update big_cards set race = 'BAR';`
+Query: EXPLAIN QUERY PLAN update big_cards set race = 'BAR';
 QUERY PLAN
 `--SCAN TABLE big_cards
 Run Time: real 0.002 user 0.000000 sys 0.000000
